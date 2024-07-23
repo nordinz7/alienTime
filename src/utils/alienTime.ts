@@ -6,7 +6,6 @@ export default class AlienTime {
   private alienDayInSeconds: number
   private alienMonthDays: number[]
   private alienYearInSeconds: number
-  private referenceEarthTime: Date
   private referenceAlienTime: {
     year: number
     month: number
@@ -31,7 +30,6 @@ export default class AlienTime {
       this.alienMonthDays.reduce((acc, days) => acc + days, 0) * this.alienDayInSeconds
 
     // Start reference points
-    this.referenceEarthTime = new Date(0) // 1970-01-01 00:00:00 UTC
     this.referenceAlienTime = {
       year: 2804,
       month: 18,
@@ -49,45 +47,30 @@ export default class AlienTime {
 
     let remainingSeconds = elapsedAlienSeconds
 
-    // Calculate Alien time
-    const alienSecond = Math.floor(remainingSeconds % 90)
-    remainingSeconds = Math.floor(remainingSeconds / 90)
+    const aYear = Math.floor(remainingSeconds / this.alienYearInSeconds)
+    this.referenceAlienTime.year += aYear
+    remainingSeconds -= aYear * this.alienYearInSeconds
 
-    const alienMinute = remainingSeconds % 90
-    remainingSeconds = Math.floor(remainingSeconds / 90)
+    const aMonth = Math.floor(remainingSeconds / this.alienDayInSeconds)
+    this.referenceAlienTime.month += aMonth
+    remainingSeconds -= aMonth * this.alienDayInSeconds
 
-    const alienHour = remainingSeconds % 36
-    remainingSeconds = Math.floor(remainingSeconds / 36)
+    const aDay = Math.floor(remainingSeconds / this.alienDayInSeconds)
+    this.referenceAlienTime.day += aDay
+    remainingSeconds -= aDay * this.alienDayInSeconds
 
-    let alienDay = remainingSeconds % this.alienMonthDays[this.referenceAlienTime.month - 1]
-    remainingSeconds = Math.floor(
-      remainingSeconds / this.alienMonthDays[this.referenceAlienTime.month - 1]
-    )
+    const aHour = Math.floor(remainingSeconds / this.alienHourInSeconds)
+    this.referenceAlienTime.hour += aHour
+    remainingSeconds -= aHour * this.alienHourInSeconds
 
-    let alienMonth = this.referenceAlienTime.month
-    let alienYear = this.referenceAlienTime.year
+    const aMinute = Math.floor(remainingSeconds / this.alienMinuteInSeconds)
+    this.referenceAlienTime.minute += aMinute
+    remainingSeconds -= aMinute * this.alienMinuteInSeconds
 
-    while (remainingSeconds > 0) {
-      alienDay++
-      if (alienDay > this.alienMonthDays[alienMonth - 1]) {
-        alienDay = 1
-        alienMonth++
-        if (alienMonth > 18) {
-          alienMonth = 1
-          alienYear++
-        }
-      }
-      remainingSeconds--
-    }
+    const aSecond = Math.floor(remainingSeconds)
+    this.referenceAlienTime.second += aSecond
 
-    return {
-      year: alienYear,
-      month: alienMonth,
-      day: alienDay,
-      hour: alienHour,
-      minute: alienMinute,
-      second: alienSecond
-    }
+    return this.referenceAlienTime
   }
 
   getAlienDate(date = new Date()) {
